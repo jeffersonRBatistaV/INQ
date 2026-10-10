@@ -28,7 +28,11 @@
                         <tbody class="divide-y divide-gray-100">
                             @forelse ($tenants as $tenant)
                                 <tr>
-                                    <td class="px-4 py-2 font-medium" data-label="Nombre">{{ $tenant->name }}</td>
+                                    <td class="px-4 py-2 font-medium" data-label="Nombre">
+                                        <button type="button"
+                                                @click.prevent="$store.quickview.show(@js(route('quick.tenants', $tenant)), 'Inquilino')"
+                                                class="text-gray-800 hover:text-indigo-600 hover:underline text-left">{{ $tenant->name }}</button>
+                                    </td>
                                     <td class="px-4 py-2" data-label="Teléfono">{{ $tenant->phone ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Correo">{{ $tenant->email ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Documento">{{ $tenant->document ?? '—' }}</td>

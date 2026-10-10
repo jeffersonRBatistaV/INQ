@@ -50,7 +50,8 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse ($overdue as $charge)
-                                <tr>
+                                <tr class="cursor-pointer hover:bg-gray-50"
+                                    @click.prevent="$store.quickview.show(@js(route('quick.charges', $charge)), 'Cargo')">
                                     <td class="px-4 py-2" data-label="Apartamento">{{ $charge->apartment?->displayName() ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Inquilino">{{ $charge->tenant?->name ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Concepto">{{ $charge->concept }}</td>
@@ -82,7 +83,8 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse ($upcoming as $charge)
-                                <tr>
+                                <tr class="cursor-pointer hover:bg-gray-50"
+                                    @click.prevent="$store.quickview.show(@js(route('quick.charges', $charge)), 'Cargo')">
                                     <td class="px-4 py-2" data-label="Apartamento">{{ $charge->apartment?->displayName() ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Inquilino">{{ $charge->tenant?->name ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Concepto">{{ $charge->concept }}</td>
@@ -91,6 +93,42 @@
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">Sin vencimientos próximos.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white shadow-sm sm:rounded-lg">
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="font-semibold text-gray-800">Pagos recientes</h3>
+                    <a href="{{ route('payments.index') }}" class="text-sm text-indigo-600 hover:underline">Ver todos</a>
+                </div>
+                <div class="p-4 sm:p-0">
+                    <table class="w-full rtable text-sm">
+                        <thead class="bg-gray-50 text-gray-500 text-left">
+                            <tr>
+                                <th class="px-4 py-2">Fecha</th>
+                                <th class="px-4 py-2">Inquilino</th>
+                                <th class="px-4 py-2 mobile-hide">Método</th>
+                                <th class="px-4 py-2 text-right">Monto</th>
+                                <th class="px-4 py-2">Recibo</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse ($recentPayments as $payment)
+                                <tr class="cursor-pointer hover:bg-gray-50"
+                                    @click.prevent="$store.quickview.show(@js(route('quick.payments', $payment)), 'Pago')">
+                                    <td class="px-4 py-2" data-label="Fecha">{{ $payment->paid_at->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-2" data-label="Inquilino">{{ $payment->tenant?->name ?? '—' }}</td>
+                                    <td class="px-4 py-2 mobile-hide" data-label="Método">
+                                        {{ ['cash' => 'Efectivo', 'transfer' => 'Transferencia', 'other' => 'Otro'][$payment->method] ?? $payment->method }}
+                                    </td>
+                                    <td class="px-4 py-2 text-right font-medium" data-label="Monto">RD$ {{ number_format($payment->amount, 2) }}</td>
+                                    <td class="px-4 py-2" data-label="Recibo">{{ $payment->receipt ? '#'.$payment->receipt->formattedNumber() : '—' }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">Sin pagos registrados.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

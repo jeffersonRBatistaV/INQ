@@ -62,6 +62,7 @@ class ReportController extends Controller
                 $charged = (float) $row->charged;
 
                 return [
+                    'id' => $row->apartment_id,
                     'apartment' => $row->apartment?->displayName() ?? 'N/D',
                     'charged' => round($charged, 2),
                     'paid' => round((float) $row->paid, 2),

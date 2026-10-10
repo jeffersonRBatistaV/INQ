@@ -33,6 +33,10 @@
             </main>
         </div>
 
+        @if (auth()->check() && ! auth()->user()->isSuperadmin())
+            <x-quick-drawer />
+        @endif
+
         @stack('scripts')
     </body>
 </html>

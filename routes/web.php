@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Admin\LandlordController;
 use App\Http\Controllers\ApartmentController;
+use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\ChargeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuickViewController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TenantController;
@@ -25,6 +27,7 @@ Route::middleware(['auth', 'verified', 'landlord'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::resource('apartments', ApartmentController::class)->except('show');
+    Route::resource('buildings', BuildingController::class)->except('show');
     Route::resource('tenants', TenantController::class);
     Route::resource('leases', LeaseController::class)->except('show');
 
@@ -36,11 +39,23 @@ Route::middleware(['auth', 'verified', 'landlord'])->group(function () {
     Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
     Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+    Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
+    Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+    Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
     Route::get('/payments/{payment}/receipt', [ReceiptController::class, 'download'])->name('receipts.download');
 
     Route::resource('expenses', ExpenseController::class)->except('show');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    Route::prefix('quick')->name('quick.')->group(function () {
+        Route::get('tenants/{tenant}', [QuickViewController::class, 'tenant'])->name('tenants');
+        Route::get('apartments/{apartment}', [QuickViewController::class, 'apartment'])->name('apartments');
+        Route::get('buildings/{building}', [QuickViewController::class, 'building'])->name('buildings');
+        Route::get('leases/{lease}', [QuickViewController::class, 'lease'])->name('leases');
+        Route::get('charges/{charge}', [QuickViewController::class, 'charge'])->name('charges');
+        Route::get('payments/{payment}', [QuickViewController::class, 'payment'])->name('payments');
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

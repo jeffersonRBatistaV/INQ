@@ -60,6 +60,7 @@
             @else
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Inicio</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('apartments.index')" :active="request()->routeIs('apartments.*')">Apartamentos</x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('buildings.index')" :active="request()->routeIs('buildings.*')">Edificios</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('tenants.index')" :active="request()->routeIs('tenants.*')">Inquilinos</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('leases.index')" :active="request()->routeIs('leases.*')">Contratos</x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('charges.index')" :active="request()->routeIs('charges.*')">Cargos</x-responsive-nav-link>

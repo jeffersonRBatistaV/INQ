@@ -49,7 +49,15 @@
                             <tbody class="divide-y divide-gray-100">
                                 @forelse ($ranking as $row)
                                     <tr>
-                                        <td class="px-4 py-2" data-label="Apartamento">{{ $row['apartment'] }}</td>
+                                        <td class="px-4 py-2" data-label="Apartamento">
+                                            @if ($row['id'])
+                                                <button type="button"
+                                                        @click.prevent="$store.quickview.show(@js(route('quick.apartments', $row['id'])), 'Apartamento')"
+                                                        class="text-gray-800 hover:text-indigo-600 hover:underline text-left">{{ $row['apartment'] }}</button>
+                                            @else
+                                                {{ $row['apartment'] }}
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-2 text-right" data-label="Cobrado">RD$ {{ number_format($row['paid'], 2) }}</td>
                                         <td class="px-4 py-2 text-right font-medium" data-label="%">{{ number_format($row['rate'], 1) }}%</td>
                                     </tr>

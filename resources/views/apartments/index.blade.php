@@ -21,6 +21,8 @@
                                 <th class="px-4 py-2">Nombre</th>
                                 <th class="px-4 py-2">Edificio</th>
                                 <th class="px-4 py-2">Renta base</th>
+                                <th class="px-4 py-2">Inquilino</th>
+                                <th class="px-4 py-2">Día cobro</th>
                                 <th class="px-4 py-2">Estado</th>
                                 <th class="px-4 py-2 text-right">Acciones</th>
                             </tr>
@@ -30,8 +32,26 @@
                                 <tr>
                                     <td class="px-4 py-2 font-medium" data-label="Código">{{ $apartment->code }}</td>
                                     <td class="px-4 py-2" data-label="Nombre">{{ $apartment->label ?? '—' }}</td>
-                                    <td class="px-4 py-2" data-label="Edificio">{{ $apartment->building?->name ?? '—' }}</td>
+                                    <td class="px-4 py-2" data-label="Edificio">
+                                        @if ($apartment->building)
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.buildings', $apartment->building)), 'Edificio')"
+                                                    class="text-gray-700 hover:text-indigo-600 hover:underline text-left">{{ $apartment->building->name }}</button>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-2" data-label="Renta base">RD$ {{ number_format($apartment->base_rent, 2) }}</td>
+                                    <td class="px-4 py-2" data-label="Inquilino">
+                                        @if ($apartment->activeLease?->tenant)
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.tenants', $apartment->activeLease->tenant)), 'Inquilino')"
+                                                    class="text-gray-800 hover:text-indigo-600 hover:underline text-left">{{ $apartment->activeLease->tenant->name }}</button>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2" data-label="Día cobro">{{ $apartment->activeLease?->billing_day ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Estado">
                                         @if ($apartment->status === 'occupied')
                                             <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Ocupado</span>
@@ -41,6 +61,9 @@
                                     </td>
                                     <td class="px-4 py-2 sm:text-right" data-label="">
                                         <div class="flex justify-end gap-4">
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.apartments', $apartment)), 'Apartamento')"
+                                                    class="text-gray-700 hover:underline">Ver</button>
                                             <a href="{{ route('apartments.edit', $apartment) }}" class="text-indigo-600 hover:underline">Editar</a>
                                             <x-confirm-delete :action="route('apartments.destroy', $apartment)"
                                                 title="Eliminar apartamento"
@@ -49,7 +72,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">Sin apartamentos registrados.</td></tr>
+                                <tr><td colspan="8" class="px-4 py-6 text-center text-gray-400">Sin apartamentos registrados.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

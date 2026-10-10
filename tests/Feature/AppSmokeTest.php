@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Apartment;
+use App\Models\Building;
 use App\Models\Charge;
 use App\Models\Lease;
 use App\Models\Payment;
@@ -60,7 +61,7 @@ class AppSmokeTest extends TestCase
         $landlord = $this->landlord();
         $this->scenario($landlord);
 
-        foreach (['/dashboard', '/apartments', '/tenants', '/leases', '/charges', '/payments', '/expenses', '/reports', '/profile'] as $path) {
+        foreach (['/dashboard', '/apartments', '/buildings', '/tenants', '/leases', '/leases/create', '/charges', '/payments', '/payments/create', '/expenses', '/reports', '/profile'] as $path) {
             $this->get($path)->assertOk();
         }
     }
@@ -103,6 +104,143 @@ class AppSmokeTest extends TestCase
         $this->assertDatabaseHas('receipts', ['payment_id' => $payment->id, 'number' => 1]);
 
         $this->get('/payments/'.$payment->id.'/receipt')->assertOk();
+    }
+
+    public function test_payment_can_be_updated_and_realocated(): void
+    {
+        $landlord = $this->landlord();
+        ['tenant' => $tenant, 'lease' => $lease] = $this->scenario($landlord);
+
+        $period = now()->format('Y-m');
+        app(ChargeGenerator::class)->generateForLease($lease, $period);
+
+        $payment = app(PaymentRecorder::class)->record([
+            'landlord_id' => $landlord->id,
+            'tenant_id' => $tenant->id,
+            'lease_id' => $lease->id,
+            'amount' => 4000,
+            'method' => 'cash',
+            'paid_at' => now()->toDateString(),
+        ]);
+        app(ReceiptService::class)->issue($payment);
+
+        $charge = Charge::where('lease_id', $lease->id)->firstOrFail();
+        $this->assertEquals('partial', $charge->fresh()->status);
+        $this->assertEquals(4000, (float) $charge->fresh()->paid_amount);
+
+        $this->get('/payments/'.$payment->id.'/edit')->assertOk();
+
+        $this->put('/payments/'.$payment->id, [
+            'tenant_id' => $tenant->id,
+            'amount' => 10000,
+            'method' => 'transfer',
+            'paid_at' => now()->toDateString(),
+        ])->assertRedirect(route('payments.show', $payment));
+
+        $this->assertEquals('paid', $charge->fresh()->status);
+        $this->assertEquals(10000, (float) $charge->fresh()->paid_amount);
+        $this->assertEquals(10000, (float) $payment->fresh()->receipt->total);
+    }
+
+    public function test_payment_can_be_voided_and_charges_reopened(): void
+    {
+        $landlord = $this->landlord();
+        ['tenant' => $tenant, 'lease' => $lease] = $this->scenario($landlord);
+
+        $period = now()->format('Y-m');
+        app(ChargeGenerator::class)->generateForLease($lease, $period);
+
+        $payment = app(PaymentRecorder::class)->record([
+            'landlord_id' => $landlord->id,
+            'tenant_id' => $tenant->id,
+            'lease_id' => $lease->id,
+            'amount' => 10000,
+            'method' => 'cash',
+            'paid_at' => now()->toDateString(),
+        ]);
+        app(ReceiptService::class)->issue($payment);
+
+        $charge = Charge::where('lease_id', $lease->id)->firstOrFail();
+        $this->assertEquals('paid', $charge->fresh()->status);
+        $this->assertDatabaseHas('receipts', ['payment_id' => $payment->id]);
+
+        $this->delete('/payments/'.$payment->id)->assertRedirect(route('payments.index'));
+
+        $this->assertDatabaseMissing('payments', ['id' => $payment->id]);
+        $this->assertDatabaseMissing('payment_allocations', ['payment_id' => $payment->id]);
+        $this->assertDatabaseMissing('receipts', ['payment_id' => $payment->id]);
+        $this->assertEquals('pending', $charge->fresh()->status);
+        $this->assertEquals(0, (float) $charge->fresh()->paid_amount);
+    }
+
+    public function test_building_crud_and_delete_guard(): void
+    {
+        $landlord = $this->landlord();
+        $this->actingAs($landlord);
+
+        $this->post('/buildings', ['name' => 'Edificio Norte'])
+            ->assertRedirect(route('buildings.index'));
+        $this->assertDatabaseHas('buildings', ['landlord_id' => $landlord->id, 'name' => 'Edificio Norte']);
+
+        $this->post('/buildings', ['name' => 'Edificio Sur']);
+        $occupied = Building::where('name', 'Edificio Sur')->first();
+        Apartment::create([
+            'code' => 'B-1',
+            'building_id' => $occupied->id,
+            'base_rent' => 1000,
+            'status' => 'available',
+        ]);
+
+        $this->delete("/buildings/{$occupied->id}")->assertRedirect(route('buildings.index'));
+        $this->assertDatabaseHas('buildings', ['id' => $occupied->id]);
+
+        $empty = Building::where('name', 'Edificio Norte')->first();
+        $this->delete("/buildings/{$empty->id}")->assertRedirect(route('buildings.index'));
+        $this->assertDatabaseMissing('buildings', ['id' => $empty->id]);
+    }
+
+    public function test_apartment_code_is_auto_generated(): void
+    {
+        $landlord = $this->landlord();
+        $this->actingAs($landlord);
+
+        $first = Apartment::create(['base_rent' => 1000, 'status' => 'available']);
+        $second = Apartment::create(['base_rent' => 1000, 'status' => 'available']);
+
+        $this->assertSame('APT-0001', $first->code);
+        $this->assertSame('APT-0002', $second->code);
+
+        $other = $this->landlord();
+        $this->actingAs($other);
+        $third = Apartment::create(['base_rent' => 1000, 'status' => 'available']);
+
+        $this->assertSame('APT-0001', $third->code);
+    }
+
+    public function test_lease_syncs_apartment_status(): void
+    {
+        $landlord = $this->landlord();
+        $this->actingAs($landlord);
+
+        $apartment = Apartment::create(['base_rent' => 5000]);
+        $tenant = Tenant::create(['name' => 'Ana Gómez']);
+
+        $this->assertSame('available', $apartment->fresh()->status);
+
+        $this->post('/leases', [
+            'apartment_id' => $apartment->id,
+            'tenant_id' => $tenant->id,
+            'rent_amount' => 5000,
+            'billing_day' => 10,
+            'status' => 'active',
+        ])->assertRedirect(route('leases.index'));
+
+        $this->assertSame('occupied', $apartment->fresh()->status);
+
+        $lease = Lease::where('apartment_id', $apartment->id)->firstOrFail();
+        $this->delete('/leases/'.$lease->id)->assertRedirect(route('leases.index'));
+
+        $this->assertSame('available', $apartment->fresh()->status);
     }
 
     public function test_landlords_cannot_see_each_others_data(): void

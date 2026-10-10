@@ -28,7 +28,7 @@ class LeaseController extends Controller
     {
         $lease = Lease::create($this->validated($request));
 
-        $lease->apartment->update(['status' => 'occupied']);
+        $lease->apartment->syncStatus();
 
         return redirect()->route('leases.index')->with('status', 'Contrato creado.');
     }
@@ -43,15 +43,26 @@ class LeaseController extends Controller
 
     public function update(Request $request, Lease $lease)
     {
+        $previousApartmentId = $lease->apartment_id;
+
         $lease->update($this->validated($request));
+
+        $lease->load('apartment')->apartment->syncStatus();
+
+        if ($previousApartmentId !== $lease->apartment_id) {
+            Apartment::find($previousApartmentId)?->syncStatus();
+        }
 
         return redirect()->route('leases.index')->with('status', 'Contrato actualizado.');
     }
 
     public function destroy(Lease $lease)
     {
-        $lease->apartment->update(['status' => 'available']);
+        $apartment = $lease->apartment;
+
         $lease->delete();
+
+        $apartment?->syncStatus();
 
         return redirect()->route('leases.index')->with('status', 'Contrato eliminado.');
     }
@@ -61,8 +72,8 @@ class LeaseController extends Controller
         return $request->validate([
             'apartment_id' => ['required', 'exists:apartments,id'],
             'tenant_id' => ['required', 'exists:tenants,id'],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', ...($request->filled('start_date') ? ['after_or_equal:start_date'] : [])],
             'rent_amount' => ['required', 'numeric', 'min:0'],
             'deposit_amount' => ['nullable', 'numeric', 'min:0'],
             'billing_day' => ['required', 'integer', 'min:1', 'max:31'],

@@ -43,6 +43,12 @@ class DashboardController extends Controller
             'overdue_total' => round($overdue->sum(fn ($c) => $c->balance()), 2),
         ];
 
-        return view('dashboard', compact('overdue', 'upcoming', 'stats', 'period'));
+        $recentPayments = Payment::with(['tenant', 'receipt'])
+            ->orderByDesc('paid_at')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+
+        return view('dashboard', compact('overdue', 'upcoming', 'stats', 'period', 'recentPayments'));
     }
 }

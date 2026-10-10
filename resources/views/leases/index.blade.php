@@ -29,9 +29,25 @@
                         <tbody class="divide-y divide-gray-100">
                             @forelse ($leases as $lease)
                                 <tr>
-                                    <td class="px-4 py-2 font-medium" data-label="Apartamento">{{ $lease->apartment?->displayName() }}</td>
-                                    <td class="px-4 py-2" data-label="Inquilino">{{ $lease->tenant?->name }}</td>
-                                    <td class="px-4 py-2" data-label="Inicio">{{ $lease->start_date->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-2 font-medium" data-label="Apartamento">
+                                        @if ($lease->apartment)
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.apartments', $lease->apartment)), 'Apartamento')"
+                                                    class="font-medium text-gray-800 hover:text-indigo-600 hover:underline text-left">{{ $lease->apartment->displayName() }}</button>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2" data-label="Inquilino">
+                                        @if ($lease->tenant)
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.tenants', $lease->tenant)), 'Inquilino')"
+                                                    class="text-gray-800 hover:text-indigo-600 hover:underline text-left">{{ $lease->tenant->name }}</button>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2" data-label="Inicio">{{ $lease->start_date?->format('d/m/Y') ?? '—' }}</td>
                                     <td class="px-4 py-2" data-label="Renta">RD$ {{ number_format($lease->rent_amount, 2) }}</td>
                                     <td class="px-4 py-2" data-label="Día cobro">{{ $lease->billing_day }}</td>
                                     <td class="px-4 py-2" data-label="Estado">
@@ -43,6 +59,9 @@
                                     </td>
                                     <td class="px-4 py-2 sm:text-right" data-label="">
                                         <div class="flex justify-end gap-4">
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.leases', $lease)), 'Contrato')"
+                                                    class="text-gray-700 hover:underline">Ver</button>
                                             <a href="{{ route('leases.edit', $lease) }}" class="text-indigo-600 hover:underline">Editar</a>
                                             <x-confirm-delete :action="route('leases.destroy', $lease)"
                                                 title="Eliminar contrato"

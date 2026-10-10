@@ -1,12 +1,18 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Pago #{{ $payment->id }}</h2>
-            @if ($payment->receipt)
-                <a href="{{ route('receipts.download', $payment) }}" class="inline-flex items-center px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-900">
-                    Descargar recibo PDF
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                @if ($payment->receipt)
+                    <a href="{{ route('receipts.download', $payment) }}" class="inline-flex w-full sm:w-auto justify-center items-center px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-900">
+                        Descargar recibo PDF
+                    </a>
+                @endif
+                <a href="{{ route('payments.edit', $payment) }}" class="inline-flex w-full sm:w-auto justify-center items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-md hover:bg-gray-50">
+                    Editar
                 </a>
-            @endif
+                <x-confirm-delete :action="route('payments.destroy', $payment)" title="Anular pago" message="Se revertirán los cargos aplicados y se eliminará el recibo emitido. Esta acción no se puede deshacer." button-class="w-full sm:w-auto justify-center items-center px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 inline-flex">Eliminar</x-confirm-delete>
+            </div>
         </div>
     </x-slot>
 

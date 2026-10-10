@@ -1,10 +1,12 @@
 @php($apartment = $apartment ?? null)
+@php($buildingId = old('building_id', request('building_id', $apartment?->building_id)))
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
-        <x-input-label for="code" value="Código" />
-        <x-text-input id="code" name="code" class="mt-1 block w-full" :value="old('code', $apartment?->code)" required />
-        <x-input-error :messages="$errors->get('code')" class="mt-2" />
+        <x-input-label value="Código" />
+        <div class="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+            {{ $apartment?->code ?? 'Se generará automáticamente' }}
+        </div>
     </div>
     <div>
         <x-input-label for="label" value="Nombre / descripción" />
@@ -15,7 +17,7 @@
         <select id="building_id" name="building_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
             <option value="">— Sin edificio —</option>
             @foreach ($buildings as $building)
-                <option value="{{ $building->id }}" @selected(old('building_id', $apartment?->building_id) == $building->id)>{{ $building->name }}</option>
+                <option value="{{ $building->id }}" @selected((string) $buildingId === (string) $building->id)>{{ $building->name }}</option>
             @endforeach
         </select>
     </div>
@@ -28,12 +30,25 @@
         <x-input-label for="address" value="Dirección" />
         <x-text-input id="address" name="address" class="mt-1 block w-full" :value="old('address', $apartment?->address)" />
     </div>
-    <div>
-        <x-input-label for="status" value="Estado" />
-        <select id="status" name="status" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-            <option value="available" @selected(old('status', $apartment?->status) === 'available')>Disponible</option>
-            <option value="occupied" @selected(old('status', $apartment?->status) === 'occupied')>Ocupado</option>
-        </select>
+    <div class="md:col-span-2">
+        @if ($apartment)
+            @php($activeLease = $apartment->activeLease)
+            @if ($activeLease)
+                <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                    <span class="font-semibold">Ocupado</span> por {{ $activeLease->tenant?->name ?? '—' }}
+                    · Día de cobro: <strong>{{ $activeLease->billing_day }}</strong>
+                    · <a href="{{ route('leases.edit', $activeLease) }}" class="underline">Ver contrato</a>
+                </div>
+            @else
+                <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                    Disponible. El estado se marca <strong>ocupado</strong> automáticamente al crear un contrato activo.
+                </div>
+            @endif
+        @else
+            <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                El estado se marcará <strong>ocupado</strong> automáticamente cuando asignes un contrato con un inquilino.
+            </div>
+        @endif
     </div>
     <div class="md:col-span-2">
         <x-input-label for="notes" value="Notas" />

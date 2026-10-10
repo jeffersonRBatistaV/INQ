@@ -71,9 +71,26 @@
                         <tbody class="divide-y divide-gray-100">
                             @forelse ($charges as $charge)
                                 <tr>
-                                    <td class="px-4 py-2" data-label="Apartamento">{{ $charge->apartment?->displayName() ?? '—' }}</td>
-                                    <td class="px-4 py-2" data-label="Inquilino">{{ $charge->tenant?->name ?? '—' }}</td>
-                                    <td class="px-4 py-2" data-label="Concepto">{{ $charge->concept }}</td>
+                                    <td class="px-4 py-2" data-label="Apartamento">
+                                        @if ($charge->apartment)
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.apartments', $charge->apartment)), 'Apartamento')"
+                                                    class="text-gray-800 hover:text-indigo-600 hover:underline text-left">{{ $charge->apartment->displayName() }}</button>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2" data-label="Inquilino">
+                                        @if ($charge->tenant)
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.tenants', $charge->tenant)), 'Inquilino')"
+                                                    class="text-gray-800 hover:text-indigo-600 hover:underline text-left">{{ $charge->tenant->name }}</button>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-2 cursor-pointer hover:bg-gray-50" data-label="Concepto"
+                                        @click.prevent="$store.quickview.show(@js(route('quick.charges', $charge)), 'Cargo')">{{ $charge->concept }}</td>
                                     <td class="px-4 py-2 {{ $charge->isOverdue() ? 'text-red-600' : '' }}" data-label="Vence">{{ $charge->due_date->format('d/m/Y') }}</td>
                                     <td class="px-4 py-2 sm:text-right" data-label="Monto">RD$ {{ number_format($charge->amount, 2) }}</td>
                                     <td class="px-4 py-2 sm:text-right font-medium" data-label="Saldo">RD$ {{ number_format($charge->balance(), 2) }}</td>
@@ -82,9 +99,14 @@
                                         <span class="px-2 py-1 text-xs rounded-full {{ $colors[$charge->status] ?? 'bg-gray-100' }}">{{ $charge->status }}</span>
                                     </td>
                                     <td class="px-4 py-2 sm:text-right" data-label="">
-                                        <x-confirm-delete :action="route('charges.destroy', $charge)"
-                                            title="Eliminar cargo"
-                                            message="¿Seguro que deseas eliminar el cargo &quot;{{ $charge->concept }}&quot; de {{ $charge->apartment?->displayName() }}? Esta acción no se puede deshacer.">Eliminar</x-confirm-delete>
+                                        <div class="flex flex-wrap justify-end gap-4">
+                                            <button type="button"
+                                                    @click.prevent="$store.quickview.show(@js(route('quick.charges', $charge)), 'Cargo')"
+                                                    class="text-gray-700 hover:underline">Ver</button>
+                                            <x-confirm-delete :action="route('charges.destroy', $charge)"
+                                                title="Eliminar cargo"
+                                                message="¿Seguro que deseas eliminar el cargo &quot;{{ $charge->concept }}&quot; de {{ $charge->apartment?->displayName() }}? Esta acción no se puede deshacer.">Eliminar</x-confirm-delete>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

@@ -10,7 +10,7 @@ class ApartmentController extends Controller
 {
     public function index()
     {
-        $apartments = Apartment::with('building')->withCount('leases')->orderBy('code')->paginate(20);
+        $apartments = Apartment::with(['building', 'activeLease.tenant'])->withCount('leases')->orderBy('code')->paginate(20);
 
         return view('apartments.index', compact('apartments'));
     }
@@ -57,12 +57,10 @@ class ApartmentController extends Controller
     private function validated(Request $request, ?Apartment $apartment = null): array
     {
         return $request->validate([
-            'code' => ['required', 'string', 'max:40'],
             'label' => ['nullable', 'string', 'max:120'],
             'building_id' => ['nullable', 'exists:buildings,id'],
             'address' => ['nullable', 'string', 'max:255'],
             'base_rent' => ['required', 'numeric', 'min:0'],
-            'status' => ['required', 'in:available,occupied'],
             'notes' => ['nullable', 'string'],
         ]);
     }

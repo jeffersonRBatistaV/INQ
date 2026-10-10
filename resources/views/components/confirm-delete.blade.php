@@ -1,10 +1,10 @@
-@props(['action', 'title' => 'Confirmar eliminación', 'message' => 'Esta acción no se puede deshacer.'])
+@props(['action', 'title' => 'Confirmar eliminación', 'message' => 'Esta acción no se puede deshacer.', 'buttonClass' => 'text-red-600 hover:underline'])
 
 <form action="{{ $action }}" method="POST" x-data="{ open: false }" class="inline">
     @csrf
     @method('DELETE')
 
-    <button type="button" @click="open = true" {{ $attributes->merge(['class' => 'text-red-600 hover:underline']) }}>
+    <button type="button" @click="open = true" {{ $attributes->merge(['class' => $buttonClass]) }}>
         {{ $slot }}
     </button>
 
