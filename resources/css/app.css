@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+@layer utilities {
+    .pt-safe {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .safe-bottom {
+        padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+    }
+}
+
+@layer components {
+    /* Responsive tables: rows become cards on small screens. */
+    @media (max-width: 767px) {
+        .rtable thead {
+            display: none;
+        }
+
+        .rtable,
+        .rtable tbody,
+        .rtable tr,
+        .rtable td {
+            display: block;
+            width: 100%;
+        }
+
+        .rtable tr {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            background: #fff;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .rtable td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border: 0;
+            padding: 0.3rem 0;
+            text-align: right;
+        }
+
+        .rtable td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6b7280;
+            text-align: left;
+            flex: 0 0 auto;
+        }
+
+        .rtable td[data-label=""],
+        .rtable td:not([data-label]) {
+            justify-content: flex-end;
+        }
+
+        .rtable td[data-label=""]::before,
+        .rtable td:not([data-label])::before {
+            content: none;
+        }
+
+        .rtable td.mobile-hide {
+            display: none;
+        }
+    }
+}
