@@ -82,10 +82,9 @@
                                         <span class="px-2 py-1 text-xs rounded-full {{ $colors[$charge->status] ?? 'bg-gray-100' }}">{{ $charge->status }}</span>
                                     </td>
                                     <td class="px-4 py-2 sm:text-right" data-label="">
-                                        <form action="{{ route('charges.destroy', $charge) }}" method="POST" onsubmit="return confirm('¿Eliminar cargo?')">
-                                            @csrf @method('DELETE')
-                                            <button class="text-red-600 hover:underline">Eliminar</button>
-                                        </form>
+                                        <x-confirm-delete :action="route('charges.destroy', $charge)"
+                                            title="Eliminar cargo"
+                                            message="¿Seguro que deseas eliminar el cargo &quot;{{ $charge->concept }}&quot; de {{ $charge->apartment?->displayName() }}? Esta acción no se puede deshacer.">Eliminar</x-confirm-delete>
                                     </td>
                                 </tr>
                             @empty

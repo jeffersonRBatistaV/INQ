@@ -37,10 +37,9 @@
                                         <div class="flex flex-wrap justify-end gap-4">
                                             <a href="{{ route('tenants.show', $tenant) }}" class="text-gray-700 hover:underline">Estado de cuenta</a>
                                             <a href="{{ route('tenants.edit', $tenant) }}" class="text-indigo-600 hover:underline">Editar</a>
-                                            <form action="{{ route('tenants.destroy', $tenant) }}" method="POST" onsubmit="return confirm('¿Eliminar inquilino?')">
-                                                @csrf @method('DELETE')
-                                                <button class="text-red-600 hover:underline">Eliminar</button>
-                                            </form>
+                                            <x-confirm-delete :action="route('tenants.destroy', $tenant)"
+                                                title="Eliminar inquilino"
+                                                message="¿Seguro que deseas eliminar al inquilino {{ $tenant->name }} y sus datos? Esta acción no se puede deshacer.">Eliminar</x-confirm-delete>
                                         </div>
                                     </td>
                                 </tr>

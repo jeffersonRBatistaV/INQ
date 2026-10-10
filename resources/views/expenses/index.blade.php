@@ -41,10 +41,9 @@
                                     <td class="px-4 py-2 sm:text-right" data-label="">
                                         <div class="flex justify-end gap-4">
                                             <a href="{{ route('expenses.edit', $expense) }}" class="text-indigo-600 hover:underline">Editar</a>
-                                            <form action="{{ route('expenses.destroy', $expense) }}" method="POST" onsubmit="return confirm('¿Eliminar gasto?')">
-                                                @csrf @method('DELETE')
-                                                <button class="text-red-600 hover:underline">Eliminar</button>
-                                            </form>
+                                            <x-confirm-delete :action="route('expenses.destroy', $expense)"
+                                                title="Eliminar gasto"
+                                                message="¿Seguro que deseas eliminar el gasto &quot;{{ $expense->concept }}&quot;? Esta acción no se puede deshacer.">Eliminar</x-confirm-delete>
                                         </div>
                                     </td>
                                 </tr>
